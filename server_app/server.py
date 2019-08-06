@@ -1,11 +1,12 @@
 from flask import Flask,jsonify
 import os
 import subprocess
+from flask_cors import CORS
 # App of example for remote control
 # 2019 forense
 # Felipe-Leidy-Daniel
 app = Flask(__name__)
-
+cors = CORS(app, resources={r"/*": {"origins": "*"}})
 @app.route('/devices')
 def list_devices():
     cmd = "ls -l /dev/sd* 2>null | wc | awk '{print $1}' > /tmp/server/devices.txt"
@@ -40,6 +41,24 @@ def umount():
     os.system(cmd)
     return jsonify(
         response="umounted successful"
+    )
+@app.route('/umountDevice/<device>')
+def umountDevice():
+    cmd = "umount /mnt"
+    os.system(cmd)
+    return jsonify(
+        response="umounted successful"
+    )
+@app.route('/mount/<device>/<status>')
+def mountImage(device, status):
+    if(status=="true"):
+       cmd = "mount -o ro,loop,noexec /media/copy-"+device+".dd /mnt"
+       os.system(cmd)
+    else:
+       cmd = "mount -o ro,loop,noexec /home/swb/images/copy-"+device+".dd /mnt"
+       os.system(cmd)
+    return jsonify(
+           response="mounted successful"
     )
 @app.route('/getImage/<device>/<status>')
 def getImage(device, status):
